@@ -106,7 +106,7 @@ st.markdown("""
         display: block; 
     }
     .developer-name-title { 
-        font-size: 1.3rem; /* Adjusted size for name above role */
+        font-size: 1.3rem; 
         color: #1E6091;
         font-weight: 600;
         margin-top: 0px; 
@@ -116,7 +116,7 @@ st.markdown("""
     .developer-role {
         font-size: 1.1rem;
         color: #168AAD;
-        margin-bottom: 20px; /* Space below role */
+        margin-bottom: 20px; 
         text-align: left; 
     }
     .developer-intro-text {
@@ -124,7 +124,6 @@ st.markdown("""
         line-height: 1.75; 
         color: #2c3e50;
         text-align: justify;
-        /* margin-top: 0px; Remove top margin if name/role are directly above */
     }
     .developer-name-caption { 
         text-align: center; 
@@ -633,7 +632,7 @@ with tab_about:
     <p>If you have any questions, encounter issues, or have suggestions for improving Annotrax, please feel free to reach out. 
     Your feedback is valuable!</p>
     <p><strong>Email:</strong> <a href="mailto:kaletejal05@mail.com">kaletejal05@mail.com</a></p>
-    <p><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/tejal-kale-0658bb209/" target="_blank">Connect with Tejal Kale on LinkedIn</a></p>
+    <p><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/tejal-kale-0b2195299?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank">Connect with Tejal Kale on LinkedIn</a></p>
     <p>We will do our best to respond to your queries as soon as possible.</p>
     """, unsafe_allow_html=True)
 
@@ -653,10 +652,9 @@ with tab_dev_desk:
             <div style="display: flex; justify-content: center;">
                 <img src="{image_url}" alt="Tejal Kale" class="developer-profile-image" style="width: 200px;"> 
             </div>
-            """,
+            """, # Removed the caption from here
             unsafe_allow_html=True
         )
-        # The caption is now part of the col_text for better alignment with other text
 
     with col_text:
         # Name and Role placed at the top of the text column
