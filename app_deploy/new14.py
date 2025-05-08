@@ -97,7 +97,7 @@ st.markdown("""
         background-color: #fdfdff;
         border-radius: 8px;
     }
-    .developer-profile-image {
+    .developer-profile-image { 
         border-radius: 15px !important;
         border: 3px solid #BDE0FE !important;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
@@ -105,27 +105,35 @@ st.markdown("""
         height: auto;   
         display: block; 
     }
-    .developer-intro-text {
-        font-size: 1.05rem; /* Slightly adjusted for readability */
-        line-height: 1.75; /* Slightly increased for better spacing */
-        color: #2c3e50;
-        text-align: justify;
-        margin-top: 15px; /* Add space above the intro text */
-    }
-    .developer-name-caption { /* For the name under the image */
-        text-align: center; 
-        font-weight: 500; 
-        color: #1E6091; 
-        margin-top: 10px; /* Space between image and name */
-        font-size: 1.1rem;
+    .developer-name-title { 
+        font-size: 1.3rem; /* Adjusted size for name above role */
+        color: #1E6091;
+        font-weight: 600;
+        margin-top: 0px; 
+        margin-bottom: 2px;
+        text-align: left; 
     }
     .developer-role {
         font-size: 1.1rem;
         color: #168AAD;
-        margin-bottom: 10px; /* Space below role */
-        text-align: left; /* Ensure role is left-aligned */
+        margin-bottom: 20px; /* Space below role */
+        text-align: left; 
     }
-     .developer-signature {
+    .developer-intro-text {
+        font-size: 1.05rem; 
+        line-height: 1.75; 
+        color: #2c3e50;
+        text-align: justify;
+        /* margin-top: 0px; Remove top margin if name/role are directly above */
+    }
+    .developer-name-caption { 
+        text-align: center; 
+        font-weight: 500; 
+        color: #1E6091; 
+        margin-top: 10px; 
+        font-size: 1.1rem;
+    }
+    .developer-signature {
         text-align: right;
         font-style: italic;
         color: #555;
@@ -179,7 +187,7 @@ st.markdown("""
 st.markdown("<h1 class='main-header'>🧬 Annotrax</h1>", unsafe_allow_html=True)
 st.markdown("<p class='tagline'>Annotating Genes with Computational Excellence</p>", unsafe_allow_html=True)
 
-# --- NCBI Data Fetching Functions (Keep as is) ---
+# --- NCBI Data Fetching Functions ---
 @st.cache_data(ttl=3600)
 def fetch_gene_annotation(gene_name, organism="Homo sapiens"):
     try:
@@ -305,7 +313,7 @@ tab_home, tab_about, tab_dev_desk = st.tabs([
 ])
 
 with tab_home:
-    # --- HOME TAB CONTENT (Keep as is) ---
+    # --- HOME TAB CONTENT ---
     if search_mode == "Single Gene":
         gene_name_input = st.text_input("🔍 Enter gene name (e.g., INS, BRCA1, TP53):", key="single_gene_input_home") 
         if gene_name_input:
@@ -587,14 +595,17 @@ with tab_about:
     st.markdown("""
     <p>This project, Annotrax, stands on the shoulders of giants and is fueled by the spirit of collaborative learning and mentorship. 
     I extend my deepest gratitude to all who have contributed, directly or indirectly, to its development.</p>
+    
     <p>A very special and heartfelt acknowledgement goes to 
-    <span class='acknowledgement-highlight'>Dr. Kushagra Kashyap</span>. 
+    <span class='acknowledgement-highlight'>Dr. Kushagra Kashyap</span>, Professor at DES Pune University. 
     His invaluable guidance, profound expertise in bioinformatics, and unwavering support were instrumental 
     throughout the conception and development of this application. Dr. Kashyap's insightful feedback, 
     encouragement to explore innovative solutions, and dedication to fostering a rich learning environment 
     have not only shaped Annotrax but have also significantly contributed to my growth as a developer and researcher. 
     His vision for leveraging computational tools to advance biological research served as a constant source of inspiration. 
-    Thank you, Dr. Kashyap, for your exceptional mentorship.</p>
+    Thank you, Dr. Kashyap, for your exceptional mentorship. You can connect with him on 
+    <a href="https://www.linkedin.com/in/dr-kushagra-kashyap-b230a3bb?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank">LinkedIn</a>.</p>
+    
     <p>I am also grateful to:</p>
     <ul>
         <li>The creators and maintainers of the <a href="https://www.ncbi.nlm.nih.gov/" target="_blank">National Center for Biotechnology Information (NCBI)</a> and its Entrez API, which provides the foundational data for Annotrax.</li>
@@ -631,22 +642,28 @@ with tab_about:
 with tab_dev_desk:
     st.markdown("<h2 class='sub-header'>Developer's Desk</h2>", unsafe_allow_html=True)
     st.markdown("<div class='developer-desk-container'>", unsafe_allow_html=True)
+    
     col_img, col_text = st.columns([1, 2.5]) 
+    
     with col_img:
         image_url = "https://media.licdn.com/dms/image/v2/D5603AQFfI1KWVSWl0Q/profile-displayphoto-shrink_400_400/B56ZRRpRfTH0Ag-/0/1736536563970?e=1752105600&v=beta&t=6o_NtvfTuXoxDGHXmXaLYpbi3-blU9E8eHv-OO1gScU"
-        
+        # Using st.markdown for the image to apply custom class and control width
         st.markdown(
             f"""
-            <div style="display: flex; justify-content: center; flex-direction: column; align-items: center;">
+            <div style="display: flex; justify-content: center;">
                 <img src="{image_url}" alt="Tejal Kale" class="developer-profile-image" style="width: 200px;"> 
-                <p class="developer-name-caption">Tejal Kale</p>
             </div>
             """,
             unsafe_allow_html=True
         )
+        # The caption is now part of the col_text for better alignment with other text
 
     with col_text:
+        # Name and Role placed at the top of the text column
+        st.markdown("<h3 class='developer-name-title'>Tejal Kale</h3>", unsafe_allow_html=True)
         st.markdown("<p class='developer-role'>M.Sc. Bioinformatics Student, DES Pune University</p>", unsafe_allow_html=True)
+        
+        # New introductory paragraph
         st.markdown("""
         <div class='developer-intro-text'>
         As someone who's spent countless hours navigating the complexities of gene annotation, I know firsthand the frustration of juggling multiple tools and databases. 
@@ -657,6 +674,7 @@ with tab_dev_desk:
         </div>
         <p class="developer-signature">— Tejal Kale, Developer of Annotrax</p>
         """, unsafe_allow_html=True)
+        
     st.markdown("</div>", unsafe_allow_html=True)
 
 # Footer
