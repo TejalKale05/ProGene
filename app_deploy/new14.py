@@ -97,28 +97,42 @@ st.markdown("""
         background-color: #fdfdff;
         border-radius: 8px;
     }
-    .stImage > img { /* More general selector for streamlit images */
-        border-radius: 15px;
-        border: 3px solid #BDE0FE;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    .developer-profile-image {
+        border-radius: 15px !important;
+        border: 3px solid #BDE0FE !important;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
+        max-width: 100%; 
+        height: auto;   
+        display: block; 
     }
     .developer-intro-text {
-        font-size: 1.1rem;
-        line-height: 1.7;
+        font-size: 1.05rem; /* Slightly adjusted for readability */
+        line-height: 1.75; /* Slightly increased for better spacing */
         color: #2c3e50;
         text-align: justify;
+        margin-top: 15px; /* Add space above the intro text */
     }
-    .developer-name {
-        font-size: 1.8rem;
-        color: #1E6091;
-        font-weight: 600;
-        margin-bottom: 5px;
+    .developer-name-caption { /* For the name under the image */
+        text-align: center; 
+        font-weight: 500; 
+        color: #1E6091; 
+        margin-top: 10px; /* Space between image and name */
+        font-size: 1.1rem;
     }
     .developer-role {
         font-size: 1.1rem;
         color: #168AAD;
-        margin-bottom: 15px;
+        margin-bottom: 10px; /* Space below role */
+        text-align: left; /* Ensure role is left-aligned */
     }
+     .developer-signature {
+        text-align: right;
+        font-style: italic;
+        color: #555;
+        margin-top: 20px;
+        font-size: 0.95rem;
+    }
+
 
     /* Content styling for About tab sections */
     .about-content-wrapper {
@@ -128,7 +142,7 @@ st.markdown("""
         text-align: justify;
     }
     .about-content-wrapper ul, .about-content-wrapper ol {
-        padding-left: 25px; /* More conventional padding for lists */
+        padding-left: 25px;
         list-style-position: outside;
     }
     .about-content-wrapper li {
@@ -144,19 +158,19 @@ st.markdown("""
     .about-content-wrapper a:hover {
         text-decoration: underline;
     }
-    .stExpander { /* Styling for expanders in the About tab */
-        border: 1px solid #dcecf8; /* Lighter border */
+    .stExpander {
+        border: 1px solid #dcecf8;
         border-radius: 6px;
-        background-color: #f9fcff; /* Very light background for expander body */
-        margin-top: 15px; /* Add some space above expanders */
+        background-color: #f9fcff;
+        margin-top: 15px;
     }
-    .stExpander header { /* Styling for expander headers */
+    .stExpander header {
         font-size: 1.2rem !important;
         font-weight: 500 !important;
         color: #1A5276 !important;
-        background-color: #eef6fc; /* Light background for header */
+        background-color: #eef6fc;
         border-bottom: 1px solid #dcecf8;
-        border-radius: 6px 6px 0 0; /* Match expander radius */
+        border-radius: 6px 6px 0 0;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -165,7 +179,7 @@ st.markdown("""
 st.markdown("<h1 class='main-header'>🧬 Annotrax</h1>", unsafe_allow_html=True)
 st.markdown("<p class='tagline'>Annotating Genes with Computational Excellence</p>", unsafe_allow_html=True)
 
-# --- NCBI Data Fetching Functions ---
+# --- NCBI Data Fetching Functions (Keep as is) ---
 @st.cache_data(ttl=3600)
 def fetch_gene_annotation(gene_name, organism="Homo sapiens"):
     try:
@@ -291,7 +305,7 @@ tab_home, tab_about, tab_dev_desk = st.tabs([
 ])
 
 with tab_home:
-    # --- HOME TAB CONTENT ---
+    # --- HOME TAB CONTENT (Keep as is) ---
     if search_mode == "Single Gene":
         gene_name_input = st.text_input("🔍 Enter gene name (e.g., INS, BRCA1, TP53):", key="single_gene_input_home") 
         if gene_name_input:
@@ -382,7 +396,7 @@ with tab_home:
                                     else: st.warning("Could not fetch FASTA sequence.")
                         st.markdown("</div>", unsafe_allow_html=True)
                     
-                    st.markdown("<h3 class='sub-header' style='font-size:1.4rem; margin-top: 20px; border-bottom: none;'>📥 Download Annotation Options</h3>", unsafe_allow_html=True) # Removed border for this specific sub-header
+                    st.markdown("<h3 class='sub-header' style='font-size:1.4rem; margin-top: 20px; border-bottom: none;'>📥 Download Annotation Options</h3>", unsafe_allow_html=True) 
                     genes_to_consider_for_download = []
                     if len(gene_annotations) > 1:
                         st.markdown("**Select genes for annotation download:**")
@@ -512,7 +526,7 @@ with tab_about:
     - **Flexible Data Export:** Download curated annotation data in user-friendly formats (CSV, JSON, TXT) with options to select specific fields for targeted analysis.
     - **User-Friendly Interface:** Intuitive navigation and clear presentation of complex data, designed for both novice and experienced users in the field of bioinformatics.
     - **Efficient & Responsive:** Leverages caching and NCBI's Entrez API for up-to-date and relatively fast data retrieval, while respecting API usage guidelines.
-    """) # Using Markdown for lists, unsafe_allow_html=False by default
+    """) 
 
     with st.expander("📖 User Manual"):
         st.markdown("""
@@ -554,7 +568,7 @@ with tab_about:
         *   Use standard gene symbols (e.g., HUGO nomenclature for human genes) for the most accurate results.
         *   Be mindful of NCBI API usage limits. The app includes a small delay between requests in batch mode to comply with these limits.
         *   Data is cached for 1 hour. This means if you search for the same gene in the same organism within an hour, the results will load much faster and reduce calls to the NCBI API.
-        """) # unsafe_allow_html=False by default for pure Markdown
+        """) 
 
     st.markdown("<h3 class='about-section-header'>Future Aspects</h3>", unsafe_allow_html=True)
     st.markdown("""
@@ -612,38 +626,36 @@ with tab_about:
     <p>We will do our best to respond to your queries as soon as possible.</p>
     """, unsafe_allow_html=True)
 
-    st.markdown("</div>", unsafe_allow_html=True) # Close about-content-wrapper
+    st.markdown("</div>", unsafe_allow_html=True) 
 
 with tab_dev_desk:
     st.markdown("<h2 class='sub-header'>Developer's Desk</h2>", unsafe_allow_html=True)
     st.markdown("<div class='developer-desk-container'>", unsafe_allow_html=True)
     col_img, col_text = st.columns([1, 2.5]) 
     with col_img:
-        try:
-            st.image("Tejal.jpg", width=200, use_column_width='auto', output_format='JPG', caption="Tejal Kale")
-        except FileNotFoundError:
-            st.warning("Developer image (Tejal.jpg) not found. Please ensure it's in the same directory as the script.")
-        except Exception as e:
-            st.error(f"Error loading image: {e}")
+        image_url = "https://media.licdn.com/dms/image/v2/D5603AQFfI1KWVSWl0Q/profile-displayphoto-shrink_400_400/B56ZRRpRfTH0Ag-/0/1736536563970?e=1752105600&v=beta&t=6o_NtvfTuXoxDGHXmXaLYpbi3-blU9E8eHv-OO1gScU"
+        
+        st.markdown(
+            f"""
+            <div style="display: flex; justify-content: center; flex-direction: column; align-items: center;">
+                <img src="{image_url}" alt="Tejal Kale" class="developer-profile-image" style="width: 200px;"> 
+                <p class="developer-name-caption">Tejal Kale</p>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
     with col_text:
-        st.markdown("<p class='developer-name'>Tejal Kale</p>", unsafe_allow_html=True)
         st.markdown("<p class='developer-role'>M.Sc. Bioinformatics Student, DES Pune University</p>", unsafe_allow_html=True)
         st.markdown("""
         <div class='developer-intro-text'>
-        Welcome to Annotrax! As a bioinformatics enthusiast currently pursuing my Master's degree, I developed this application 
-        to simplify the often complex and time-consuming task of gene annotation retrieval. 
-        My journey into creating Annotrax was driven by a desire to bridge the gap between vast biological databases and the researchers 
-        and students who need to access this information efficiently.
-        <br><br>
-        The core motivation was to build an intuitive tool that not only fetches comprehensive gene data from NCBI but also presents 
-        it in a clear, manageable, and actionable way. I envisioned Annotrax as a practical aid that empowers users – from those just 
-        starting in genomics to seasoned investigators – to quickly gather insights, accelerate their research, and deepen their 
-        understanding of gene function and regulation. This project is a testament to my passion for applying computational skills to 
-        solve real-world challenges in biology and a step towards contributing to the open-access scientific community.
-        <br><br>
-        I hope Annotrax proves to be a valuable asset in your academic and research endeavors!
+        As someone who's spent countless hours navigating the complexities of gene annotation, I know firsthand the frustration of juggling multiple tools and databases. 
+        That's why I created Annotrax - a platform born out of my own struggles and passion for bioinformatics. 
+        I wanted to build a tool that would save others the time and effort I've wasted, and instead, empower them to focus on what really matters: discovering new insights and advancing our understanding of the genetic code. 
+        With Annotrax, I've aimed to create a seamless, intuitive experience that brings together the best of gene annotation and analysis in one place. 
+        My hope is that it becomes an indispensable companion for researchers, students, and scientists, helping them unlock the secrets of the genome and drive innovation.
         </div>
+        <p class="developer-signature">— Tejal Kale, Developer of Annotrax</p>
         """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
