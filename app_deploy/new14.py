@@ -6,187 +6,98 @@ from Bio import Entrez, SeqIO
 import io
 import json
 import time
+import os
 
-# Set your email address for NCBI Entrez API (mandatory)
-Entrez.email = "kaletejal05@mail.com"  # Replace with your actual email address
+# Set your email address for NCBI Entrez API
+Entrez.email = "kaletejal05@mail.com"
 
 # Page configuration
 st.set_page_config(
     page_title="Annotrax",
-    page_icon="🧬",
     layout="wide"
 )
 
-# App styling
+# Custom CSS styles
 st.markdown("""
 <style>
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* Main app background */
+    .stApp {
+        background-color: #1a1a1a;
     }
-    .main-header {
-        font-size: 2.8rem;
-        color: #1E6091;
-        text-align: center;
-        margin-bottom: 0px;
-        font-weight: 600;
+
+    /* Sidebar styling */
+    [data-testid=stSidebar] {
+        background-color: #262626 !important;
     }
-    .tagline {
-        font-size: 1.2rem;
-        color: #168AAD;
-        text-align: center;
-        margin-top: 5px;
-        margin-bottom: 25px;
+
+    /* Text colors */
+    * {
+        color: #4CAF50 !important;
     }
-    .sub-header { /* General sub-header for tabs */
-        font-size: 1.8rem; /* Main section title within a tab */
-        color: #1E6091;
-        font-weight: 500;
-        margin-top: 10px;
-        margin-bottom: 15px;
-        border-bottom: 2px solid #e0e0e0;
-        padding-bottom: 5px;
+    
+    /* Headers */
+    h1, h2, h3, h4, h5, h6 {
+        color: #4CAF50 !important;
     }
-    .about-section-header { /* Specific for sub-sections within "About" tab */
-        font-size: 1.4rem;
-        color: #1A5276;
-        font-weight: 500;
-        margin-top: 25px;
-        margin-bottom: 10px;
+
+    /* Containers */
+    .main-container {
+        background-color: #333333;
+        padding: 2rem;
+        border-radius: 10px;
+        margin: 1rem 0;
     }
+
+    /* Cards */
+    .feature-card {
+        background-color: #404040 !important;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        border: 1px solid #4CAF50;
+    }
+
+    /* Result boxes */
     .result-box {
-        background-color: #f4f8fb;
-        border-radius: 8px;
+        background-color: #404040;
+        border-radius: 5px;
         padding: 20px;
         margin-bottom: 20px;
-        border: 1px solid #d0e0eb;
-    }
-    .info-text {
-        color: #31708f;
-        font-size: 0.9rem;
-    }
-    .acknowledgement-highlight {
-        color: #C58940;
-        font-weight: bold;
-    }
-    /* Tab styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 5px;
-        border-bottom: 2px solid #1E6091;
-    }
-    .stTabs [data-baseweb="tab"] {
-        height: auto;
-        min-height: 45px;
-        white-space: normal;
-        background-color: #e9f1f7;
-        border-radius: 6px 6px 0px 0px;
-        padding: 10px 15px;
-        font-weight: 500;
-        color: #1E6091;
-        border: 1px solid #d0e0eb;
-        border-bottom: none;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #BDE0FE;
-        color: #0d3b5c;
-        border-color: #1E6091;
+        border: 1px solid #4CAF50;
     }
 
-    /* Developer's Desk specific styling */
-    .developer-desk-container {
-        padding: 20px;
-        background-color: #fdfdff;
-        border-radius: 8px;
-    }
-    .developer-profile-image { 
-        border-radius: 15px !important;
-        border: 3px solid #BDE0FE !important;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1) !important;
-        max-width: 100%; 
-        height: auto;   
-        display: block; 
-    }
-    .developer-name-title { 
-        font-size: 1.3rem; 
-        color: #1E6091;
-        font-weight: 600;
-        margin-top: 0px; 
-        margin-bottom: 2px;
-        text-align: left; 
-    }
-    .developer-role {
-        font-size: 1.1rem;
-        color: #168AAD;
-        margin-bottom: 20px; 
-        text-align: left; 
-    }
-    .developer-intro-text {
-        font-size: 1.05rem; 
-        line-height: 1.75; 
-        color: #2c3e50;
-        text-align: justify;
-    }
-    .developer-name-caption { 
-        text-align: center; 
-        font-weight: 500; 
-        color: #1E6091; 
-        margin-top: 10px; 
-        font-size: 1.1rem;
-    }
-    .developer-signature {
-        text-align: right;
-        font-style: italic;
-        color: #555;
-        margin-top: 20px;
-        font-size: 0.95rem;
+    /* Input fields */
+    .stTextInput input {
+        background-color: #ffffff !important;
+        border: 1px solid #4CAF50 !important;
+        color: #4CAF50 !important;
     }
 
+    /* Buttons - MODIFIED */
+    .stButton>button {
+        background-color: #ffffff !important;  /* White background */
+        color: #4CAF50 !important; /* Green text */
+        border: 1px solid #4CAF50 !important; /* Green border */
+    }
+    
+    .stButton>button:hover {
+        background-color: #4CAF50 !important;  /* Green background on hover */
+        color: white !important; /* White text on hover */
+    }
 
-    /* Content styling for About tab sections */
-    .about-content-wrapper {
-        font-size: 1.05rem;
-        line-height: 1.7;
-        color: #333;
-        text-align: justify;
-    }
-    .about-content-wrapper ul, .about-content-wrapper ol {
-        padding-left: 25px;
-        list-style-position: outside;
-    }
-    .about-content-wrapper li {
-        margin-bottom: 8px;
-    }
-    .about-content-wrapper p {
-        margin-bottom: 12px;
-    }
-    .about-content-wrapper a {
-        color: #1E6091;
-        text-decoration: none;
-    }
-    .about-content-wrapper a:hover {
-        text-decoration: underline;
-    }
-    .stExpander {
-        border: 1px solid #dcecf8;
-        border-radius: 6px;
-        background-color: #f9fcff;
-        margin-top: 15px;
-    }
-    .stExpander header {
-        font-size: 1.2rem !important;
-        font-weight: 500 !important;
-        color: #1A5276 !important;
-        background-color: #eef6fc;
-        border-bottom: 1px solid #dcecf8;
-        border-radius: 6px 6px 0 0;
+    /* Dataframes */
+    .stDataFrame {
+        background-color: #333333 !important;
     }
 </style>
 """, unsafe_allow_html=True)
 
-# Header
-st.markdown("<h1 class='main-header'>🧬 Annotrax</h1>", unsafe_allow_html=True)
-st.markdown("<p class='tagline'>Annotating Genes with Computational Excellence</p>", unsafe_allow_html=True)
+# Navigation tabs
+TABS = ["🏠 Home", "🔍 Gene Search", "📚 Batch Search", "📖 About"]
+st.sidebar.markdown("Annotrax")
+selected_tab = st.sidebar.radio("Navigation", TABS)
 
-# --- NCBI Data Fetching Functions ---
+# Cache functions
 @st.cache_data(ttl=3600)
 def fetch_gene_annotation(gene_name, organism="Homo sapiens"):
     try:
@@ -194,13 +105,20 @@ def fetch_gene_annotation(gene_name, organism="Homo sapiens"):
         handle = Entrez.esearch(db="gene", term=search_term, retmax=5)
         record = Entrez.read(handle)
         handle.close()
-        if not record["IdList"]: return None
+        
+        if not record["IdList"]:
+            return None
+        
         results = []
         for gene_id in record["IdList"]:
             summary_handle = Entrez.esummary(db="gene", id=gene_id)
-            summary_record = Entrez.read(summary_handle)
+            summary = Entrez.read(summary_handle)
             summary_handle.close()
-            docsum = summary_record['DocumentSummarySet']['DocumentSummary'][0]
+            
+            docsum = summary['DocumentSummarySet']['DocumentSummary'][0]
+            genomic_info = docsum.get("GenomicInfo", [{}])
+            
+            # Get nucleotide IDs
             nuccore_ids = []
             try:
                 link_handle = Entrez.elink(dbfrom="gene", db="nuccore", id=gene_id)
@@ -209,21 +127,20 @@ def fetch_gene_annotation(gene_name, organism="Homo sapiens"):
                 if link_results[0]["LinkSetDb"]:
                     for link_info in link_results[0]["LinkSetDb"]:
                         if link_info["DbTo"] == "nuccore":
-                            for link in link_info["Link"]: nuccore_ids.append(link["Id"])
+                            nuccore_ids.extend([link["Id"] for link in link_info["Link"]])
                             break
-            except Exception: pass
-            genomic_info = docsum.get("GenomicInfo", [{}])
-            chromosome = genomic_info[0].get("ChrLoc", "N/A") if genomic_info else "N/A"
-            chr_start = genomic_info[0].get("ChrStart", "N/A") if genomic_info else "N/A"
-            chr_stop = genomic_info[0].get("ChrStop", "N/A") if genomic_info else "N/A"
+            except Exception:
+                pass
+
             gene_data = {
-                "Gene ID": gene_id, "Gene Symbol": docsum.get("Name", gene_name),
+                "Gene ID": gene_id,
+                "Gene Symbol": docsum.get("Name", gene_name),
                 "Official Name": docsum.get("Description", "N/A"),
                 "Aliases": ", ".join(docsum.get("OtherAliases", "").split(", ")[:5]),
                 "Function": docsum.get("Summary", "No function description available"),
-                "Chromosome": chromosome,
-                "Position": f"{chr_start}-{chr_stop}" if chr_start != "N/A" and chr_stop != "N/A" else "N/A",
-                "Exons": docsum.get("GenomicInfo", [{}])[0].get("ExonCount", "N/A") if genomic_info and docsum.get("GenomicInfo")[0] else "N/A",
+                "Chromosome": genomic_info[0].get("ChrLoc", "N/A") if genomic_info else "N/A",
+                "Position": f"{genomic_info[0].get('ChrStart', 'N/A')}-{genomic_info[0].get('ChrStop', 'N/A')}" if genomic_info else "N/A",
+                "Exons": genomic_info[0].get("ExonCount", "N/A") if genomic_info else "N/A",
                 "Source Organism": organism,
                 "Annotation Status": "Complete" if len(docsum.get("Summary", "")) > 50 else "Partial",
                 "Nucleotide IDs": ", ".join(nuccore_ids[:3]) if nuccore_ids else "N/A"
@@ -240,20 +157,26 @@ def fetch_gene_sequence(nuccore_id):
         handle = Entrez.efetch(db="nucleotide", id=nuccore_id, rettype="gb", retmode="text")
         record = SeqIO.read(handle, "genbank")
         handle.close()
+        
         features = []
         for feature in record.features:
             if feature.type in ["CDS", "gene", "exon", "mRNA"]:
                 feature_info = {
-                    "type": feature.type, "location": str(feature.location),
-                    "qualifiers": {k: str(v[0]) if isinstance(v, list) and v else str(v) for k,v in feature.qualifiers.items()}
+                    "type": feature.type,
+                    "location": str(feature.location),
+                    "qualifiers": {k: str(v[0]) if isinstance(v, list) and v else str(v) 
+                                  for k, v in feature.qualifiers.items()}
                 }
                 features.append(feature_info)
-        sequence_data = {
-            "id": record.id, "name": record.name, "description": record.description,
-            "length": len(record.seq), "features": features[:10],
-            "sequence": str(record.seq)[:1000] + ("..." if len(record.seq) > 1000 else "")
+        
+        return {
+            "id": record.id,
+            "name": record.name,
+            "description": record.description,
+            "length": len(record.seq),
+            "features": features[:10], # Limiting features to avoid too much data
+            "sequence": str(record.seq)[:1000] + ("..." if len(record.seq) > 1000 else "") # Sequence preview
         }
-        return sequence_data
     except Exception as e:
         st.error(f"Error fetching GenBank sequence: {e}")
         return None
@@ -269,417 +192,559 @@ def fetch_fasta_sequence_data(nuccore_id):
         st.error(f"Error fetching FASTA sequence: {e}")
         return None
 
-def extract_feature_data(gene_data, feature_type):
-    result = {}
-    if feature_type == "function": result["Function"] = gene_data.get("Function", "")
-    elif feature_type == "exons":
-        result["Exons"] = gene_data.get("Exons", "")
-        result["Position"] = gene_data.get("Position", "")
-    elif feature_type == "organism": result["Source Organism"] = gene_data.get("Source Organism", "")
-    return result
-# --- END NCBI Data Fetching Functions ---
-
-# Sidebar Search Options
-st.sidebar.markdown("<h2 class='sub-header' style='font-size:1.8rem; margin-top:0px;'>Search Options</h2>", unsafe_allow_html=True)
-database_option = st.sidebar.radio(
-    "Filter by Annotation Status:",
-    ["All Genes", "Fully Annotated Only", "Partially Annotated"]
-)
-organism_options = ["Homo sapiens", "Mus musculus", "Drosophila melanogaster", 
-                   "Caenorhabditis elegans", "Saccharomyces cerevisiae"]
-selected_organism = st.sidebar.selectbox("Select Organism:", organism_options)
-search_mode = st.sidebar.radio(
-    "Select Search Mode:",
-    ["Single Gene", "Multiple Genes (Batch)"]
-)
-# Sidebar About Annotrax Quick Info
-with st.sidebar.expander("ℹ️ About Annotrax (Quick Info)", expanded=True):
-    st.markdown("""
-    **Annotrax** simplifies gene annotation exploration.
-    - Search single or multiple genes.
-    - View function, location, exons.
-    - Filter by organism & annotation status.
-    - Download annotations (CSV, JSON, TXT) & FASTA sequences.
+# Home Tab
+if selected_tab == "🏠 Home":
+    st.markdown("<div class='main-container'>", unsafe_allow_html=True)
     
-    Full details in the "About Annotrax" tab.
-    """)
-
-# Tabs
-tab_home, tab_about, tab_dev_desk = st.tabs([
-    "🏠 Home", 
-    "ℹ️ About Annotrax", 
-    "💡 Developer's Desk"
-])
-
-with tab_home:
-    # --- HOME TAB CONTENT ---
-    if search_mode == "Single Gene":
-        gene_name_input = st.text_input("🔍 Enter gene name (e.g., INS, BRCA1, TP53):", key="single_gene_input_home") 
-        if gene_name_input:
-            with st.spinner(f"Searching for {gene_name_input} in {selected_organism}..."):
-                gene_annotations = fetch_gene_annotation(gene_name_input, selected_organism)
-            if gene_annotations:
-                if database_option == "Fully Annotated Only":
-                    gene_annotations = [g for g in gene_annotations if g["Annotation Status"] == "Complete"]
-                elif database_option == "Partially Annotated":
-                    gene_annotations = [g for g in gene_annotations if g["Annotation Status"] == "Partial"]
-                if not gene_annotations:
-                    st.warning(f"⚠️ No genes matching '{database_option}' criteria were found for '{gene_name_input}'.")
-                else:
-                    st.success(f"✅ Found {len(gene_annotations)} results for {gene_name_input}")
-                    if len(gene_annotations) > 1:
-                        tabs_results = st.tabs([f"{g['Gene Symbol']} ({g['Gene ID']})" for g in gene_annotations])
-                        for i, tab_result in enumerate(tabs_results):
-                            with tab_result:
-                                gene_data_tab = gene_annotations[i]
-                                st.markdown("<div class='result-box'>", unsafe_allow_html=True)
-                                col1, col2 = st.columns([3, 1])
-                                with col1:
-                                    st.markdown(f"#### {gene_data_tab['Gene Symbol']} - {gene_data_tab['Official Name']}")
-                                    st.markdown(f"**Aliases:** {gene_data_tab['Aliases']}")
-                                    st.markdown(f"**Location:** Chromosome {gene_data_tab['Chromosome']}, Position {gene_data_tab['Position']}")
-                                    st.markdown(f"**Exons:** {gene_data_tab['Exons']}")
-                                    st.markdown(f"**Function:**")
-                                    st.caption(f"{gene_data_tab['Function']}")
-                                with col2:
-                                    st.markdown(f"**Organism:** {gene_data_tab['Source Organism']}")
-                                    st.markdown(f"**Gene ID:** {gene_data_tab['Gene ID']}")
-                                    st.markdown(f"**Annotation:** {gene_data_tab['Annotation Status']}")
-                                    if gene_data_tab['Nucleotide IDs'] != "N/A":
-                                        first_nuccore_id = gene_data_tab['Nucleotide IDs'].split(", ")[0]
-                                        gene_id_key_part = gene_data_tab['Gene ID']
-                                        if st.button(f"View Sequence", key=f"seq_view_tab_{gene_id_key_part}_{i}", help="View GenBank details and sequence"):
-                                            with st.spinner("Fetching GenBank details..."): seq_data = fetch_gene_sequence(first_nuccore_id)
-                                            if seq_data:
-                                                st.markdown("##### Sequence Information (GenBank)")
-                                                st.markdown(f"**ID:** {seq_data['id']} | **Length:** {seq_data['length']} bp")
-                                                with st.expander("View Sequence (First 1000 bp)"): st.code(seq_data['sequence'], language=None)
-                                                with st.expander("View Features (first 10)"):
-                                                    for feat in seq_data['features']:
-                                                        st.markdown(f"**{feat['type']}** at {feat['location']}")
-                                                        for k, v_list in feat['qualifiers'].items():
-                                                            if k in ['product', 'gene', 'note', 'protein_id']: st.markdown(f"- {k}: {v_list}")
-                                            else: st.warning("Could not fetch GenBank sequence data.")
-                                        if st.button(f"Download FASTA", key=f"fasta_dl_tab_{gene_id_key_part}_{i}"):
-                                            with st.spinner(f"Fetching FASTA for {first_nuccore_id}..."): fasta_content = fetch_fasta_sequence_data(first_nuccore_id)
-                                            if fasta_content:
-                                                st.download_button(label="⬇️ FASTA Ready", data=fasta_content, file_name=f"{gene_data_tab['Gene Symbol']}_{first_nuccore_id}.fasta", mime="text/fasta", key=f"actual_fasta_dl_tab_{gene_id_key_part}_{i}")
-                                            else: st.warning("Could not fetch FASTA sequence.")
-                                st.markdown("</div>", unsafe_allow_html=True)
-                    else: 
-                        gene_data_single = gene_annotations[0]
-                        st.markdown("<div class='result-box'>", unsafe_allow_html=True)
-                        col1, col2 = st.columns([3, 1])
-                        with col1:
-                            st.markdown(f"#### {gene_data_single['Gene Symbol']} - {gene_data_single['Official Name']}")
-                            st.markdown(f"**Aliases:** {gene_data_single['Aliases']}")
-                            st.markdown(f"**Location:** Chromosome {gene_data_single['Chromosome']}, Position {gene_data_single['Position']}")
-                            st.markdown(f"**Exons:** {gene_data_single['Exons']}")
-                            st.markdown(f"**Function:**")
-                            st.caption(f"{gene_data_single['Function']}")
-                        with col2:
-                            st.markdown(f"**Organism:** {gene_data_single['Source Organism']}")
-                            st.markdown(f"**Gene ID:** {gene_data_single['Gene ID']}")
-                            st.markdown(f"**Annotation:** {gene_data_single['Annotation Status']}")
-                            if gene_data_single['Nucleotide IDs'] != "N/A":
-                                first_nuccore_id = gene_data_single['Nucleotide IDs'].split(", ")[0]
-                                gene_id_key_part = gene_data_single['Gene ID']
-                                if st.button(f"View Sequence", key=f"seq_view_single_{gene_id_key_part}", help="View GenBank details and sequence"):
-                                    with st.spinner("Fetching GenBank details..."): seq_data = fetch_gene_sequence(first_nuccore_id)
-                                    if seq_data:
-                                        st.markdown("##### Sequence Information (GenBank)")
-                                        st.markdown(f"**ID:** {seq_data['id']} | **Length:** {seq_data['length']} bp")
-                                        with st.expander("View Sequence (First 1000 bp)"): st.code(seq_data['sequence'], language=None)
-                                        with st.expander("View Features (first 10)"):
-                                            for feat in seq_data['features']:
-                                                st.markdown(f"**{feat['type']}** at {feat['location']}")
-                                                for k, v_list in feat['qualifiers'].items():
-                                                    if k in ['product', 'gene', 'note', 'protein_id']: st.markdown(f"- {k}: {v_list}")
-                                    else: st.warning("Could not fetch GenBank sequence data.")
-                                if st.button(f"Download FASTA", key=f"fasta_dl_single_{gene_id_key_part}"):
-                                    with st.spinner(f"Fetching FASTA for {first_nuccore_id}..."): fasta_content = fetch_fasta_sequence_data(first_nuccore_id)
-                                    if fasta_content:
-                                        st.download_button(label="⬇️ FASTA Ready",data=fasta_content,file_name=f"{gene_data_single['Gene Symbol']}_{first_nuccore_id}.fasta",mime="text/fasta",key=f"actual_fasta_dl_single_{gene_id_key_part}")
-                                    else: st.warning("Could not fetch FASTA sequence.")
-                        st.markdown("</div>", unsafe_allow_html=True)
-                    
-                    st.markdown("<h3 class='sub-header' style='font-size:1.4rem; margin-top: 20px; border-bottom: none;'>📥 Download Annotation Options</h3>", unsafe_allow_html=True) 
-                    genes_to_consider_for_download = []
-                    if len(gene_annotations) > 1:
-                        st.markdown("**Select genes for annotation download:**")
-                        for i, gene_item in enumerate(gene_annotations):
-                            if st.checkbox(f"Include {gene_item['Gene Symbol']} ({gene_item['Gene ID']})", value=True, key=f"dl_sel_anno_home_{gene_item['Gene ID']}"):
-                                genes_to_consider_for_download.append(gene_item)
-                        if not genes_to_consider_for_download: st.info("No genes selected for annotation download. Please check at least one.")
-                    else: genes_to_consider_for_download = gene_annotations
-
-                    if genes_to_consider_for_download: 
-                        dl_col1, dl_col2 = st.columns(2)
-                        with dl_col1:
-                            st.markdown("**Select fields for download:**")
-                            download_all_fields = st.checkbox("All annotation fields", value=True, key="anno_dl_all_fields_home")
-                            download_function_field, download_exons_field, download_organism_field = False, False, False
-                            if not download_all_fields:
-                                download_function_field = st.checkbox("Gene functions", value=True, key="anno_dl_func_home")
-                                download_exons_field = st.checkbox("Exon information", value=False, key="anno_dl_exons_home")
-                                download_organism_field = st.checkbox("Source organism", value=False, key="anno_dl_org_home")
-                        with dl_col2:
-                            st.markdown("**Download format:**")
-                            download_format_anno = st.radio("Download Format", ["CSV", "JSON", "TXT"], key="anno_dl_format_home", label_visibility="collapsed", horizontal=True)
-                        
-                        if st.button("Download Selected Annotations", key="dl_anno_button_home", type="primary"):
-                            download_data_anno = []
-                            for gene_to_dl in genes_to_consider_for_download:
-                                if download_all_fields: download_data_anno.append(gene_to_dl)
-                                else:
-                                    gene_export = {"Gene Symbol": gene_to_dl["Gene Symbol"], "Gene ID": gene_to_dl["Gene ID"]} 
-                                    if download_function_field: gene_export.update(extract_feature_data(gene_to_dl, "function"))
-                                    if download_exons_field: gene_export.update(extract_feature_data(gene_to_dl, "exons"))
-                                    if download_organism_field: gene_export.update(extract_feature_data(gene_to_dl, "organism"))
-                                    download_data_anno.append(gene_export)
-                            if not download_data_anno: st.warning("No data prepared for download. Check selections.")
-                            else:
-                                df_anno = pd.DataFrame(download_data_anno)
-                                dl_filename_base = gene_name_input if len(genes_to_consider_for_download) == 1 else "selected_genes"
-                                file_suffix = f"{dl_filename_base}_annotations"
-                                if download_format_anno == "CSV": st.download_button(label="⬇️ Download CSV", data=df_anno.to_csv(index=False).encode("utf-8"), file_name=f"{file_suffix}.csv", mime="text/csv", key="csv_dl_anno_home")
-                                elif download_format_anno == "JSON": st.download_button(label="⬇️ Download JSON", data=df_anno.to_json(orient="records", indent=2), file_name=f"{file_suffix}.json", mime="application/json", key="json_dl_anno_home")
-                                else: st.download_button(label="⬇️ Download TXT", data=df_anno.to_string(index=False), file_name=f"{file_suffix}.txt", mime="text/plain", key="txt_dl_anno_home")
-            else: st.warning(f"⚠️ No gene data found for '{gene_name_input}'. Please check spelling or try another gene.")
-    else: # Batch search mode
-        st.markdown("### Batch Gene Search")
-        st.markdown("Enter multiple gene names separated by commas, spaces, or new lines.")
-        batch_input_genes = st.text_area("Enter gene names:", height=100, key="batch_gene_input_home", placeholder="e.g. TP53, BRCA1, EGFR\nINS\nMYC, PTEN")
-        if batch_input_genes:
-            gene_names_batch = list(set([item.strip() for item in batch_input_genes.replace(",", " ").replace("\n", " ").split() if item.strip()]))
-            if gene_names_batch:
-                st.markdown(f"Found {len(gene_names_batch)} unique gene names to search.")
-                if st.button("Search Batch", key="search_batch_button_home", type="primary"):
-                    all_results_batch = []
-                    progress_bar = st.progress(0.0)
-                    status_text = st.empty()
-                    total_genes = len(gene_names_batch)
-                    for i, gene_name_item in enumerate(gene_names_batch):
-                        status_text.text(f"Searching for {gene_name_item}... ({i+1}/{total_genes})")
-                        time.sleep(0.35) 
-                        gene_annotations_item = fetch_gene_annotation(gene_name_item, selected_organism)
-                        if gene_annotations_item:
-                            filtered_annotations = gene_annotations_item
-                            if database_option == "Fully Annotated Only": filtered_annotations = [g for g in gene_annotations_item if g["Annotation Status"] == "Complete"]
-                            elif database_option == "Partially Annotated": filtered_annotations = [g for g in gene_annotations_item if g["Annotation Status"] == "Partial"]
-                            all_results_batch.extend(filtered_annotations)
-                        progress_bar.progress(float(i + 1) / total_genes)
-                    
-                    if all_results_batch:
-                        status_text.success(f"Batch search complete! Found {len(all_results_batch)} gene records matching your criteria.")
-                        df_display_batch = pd.DataFrame([{"Symbol": g.get("Gene Symbol", "N/A"), "Name": g.get("Official Name", "N/A"), "Organism": g.get("Source Organism", "N/A"), "Chr.": g.get("Chromosome", "N/A"), "Exons": g.get("Exons", "N/A"), "Status": g.get("Annotation Status", "N/A")} for g in all_results_batch])
-                        st.dataframe(df_display_batch, height=300)
-                        st.markdown("<h3 class='sub-header' style='font-size:1.4rem; margin-top: 20px; border-bottom: none;'>📥 Batch Annotation Download Options</h3>", unsafe_allow_html=True)
-                        b_col1, b_col2 = st.columns(2)
-                        with b_col1:
-                            st.markdown("**Select fields for download:**")
-                            batch_dl_all = st.checkbox("All fields", value=True, key="batch_dl_all_fields_home")
-                            batch_dl_func, batch_dl_exons, batch_dl_org = False, False, False
-                            if not batch_dl_all:
-                                batch_dl_func = st.checkbox("Gene functions", value=True, key="batch_dl_func_home")
-                                batch_dl_exons = st.checkbox("Exon information", value=False, key="batch_dl_exons_home")
-                                batch_dl_org = st.checkbox("Source organism", value=False, key="batch_dl_org_home")
-                        with b_col2:
-                            st.markdown("**Download format:**")
-                            batch_dl_format = st.radio("Download Format", ["CSV", "JSON", "TXT"], key="batch_dl_format_select_home", label_visibility="collapsed", horizontal=True)
-                        
-                        if st.button("Download Batch Annotations", key="dl_batch_anno_button_home", type="primary"):
-                            batch_dl_data = []
-                            for gene_res in all_results_batch:
-                                if batch_dl_all: batch_dl_data.append(gene_res)
-                                else:
-                                    gene_export_batch = {"Gene Symbol": gene_res.get("Gene Symbol", "N/A"), "Gene ID": gene_res.get("Gene ID", "N/A")}
-                                    if batch_dl_func: gene_export_batch.update(extract_feature_data(gene_res, "function"))
-                                    if batch_dl_exons: gene_export_batch.update(extract_feature_data(gene_res, "exons"))
-                                    if batch_dl_org: gene_export_batch.update(extract_feature_data(gene_res, "organism"))
-                                    batch_dl_data.append(gene_export_batch)
-                            if not batch_dl_data: st.warning("No data prepared for batch download.")
-                            else:
-                                batch_df_dl = pd.DataFrame(batch_dl_data)
-                                file_suffix_batch = "batch_gene_annotations"
-                                if batch_dl_format == "CSV": st.download_button(label="⬇️ Download CSV", data=batch_df_dl.to_csv(index=False).encode("utf-8"), file_name=f"{file_suffix_batch}.csv", mime="text/csv", key="csv_dl_batch_home")
-                                elif batch_dl_format == "JSON": st.download_button(label="⬇️ Download JSON", data=batch_df_dl.to_json(orient="records", indent=2), file_name=f"{file_suffix_batch}.json", mime="application/json", key="json_dl_batch_home")
-                                else: st.download_button(label="⬇️ Download TXT", data=batch_df_dl.to_string(index=False), file_name=f"{file_suffix_batch}.txt", mime="text/plain", key="txt_dl_batch_home")
-                    else: status_text.warning("⚠️ No genes found matching your criteria in the batch search.")
-            else: st.info("Enter gene names to begin batch search.")
-    # --- END HOME TAB CONTENT ---
-
-with tab_about:
-    st.markdown("<h2 class='sub-header'>About Annotrax</h2>", unsafe_allow_html=True)
-    st.markdown("<div class='about-content-wrapper'>", unsafe_allow_html=True)
-
-    st.markdown("<h3 class='about-section-header'>What is Annotrax & Its Purpose?</h3>", unsafe_allow_html=True)
+    # Main header
+    st.markdown("<h1 class='main-header'> Annotrax</h1>", unsafe_allow_html=True)
+    
+    # Title box
     st.markdown("""
-    <p>Annotrax is a user-friendly web application designed to streamline the process of exploring, retrieving, and analyzing gene annotations. 
-    It serves as an efficient bridge to the vast genomic data available in the National Center for Biotechnology Information (NCBI) databases, 
-    presenting it in an accessible and actionable format.</p>
-    <p>The primary purpose of Annotrax is to empower students, researchers, and bioinformatics
-    enthusiasts by saving them valuable time and effort in their quest for genomic insights. We aim to make complex gene data more manageable, 
-    thereby accelerating research, facilitating learning, and contributing to the broader understanding of genomics.</p>
+    <div class='title-box' style='background-color: #2a2a2a; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem; border-left: 5px solid #4CAF50;'>
+        <h3 style='color: #4CAF50!important; margin-bottom: 0.5rem;'>Your Comprehensive Gene Annotation Platform</h3>
+        <p style='color: #e0e0e0;'>Annotrax provides researchers and students with fast, reliable access to gene annotations 
+        and sequence data from trusted biological databases.</p>
+    </div>
     """, unsafe_allow_html=True)
-
-    st.markdown("<h3 class='about-section-header'>Key Features</h3>", unsafe_allow_html=True)
-    st.markdown("""
-    - **Comprehensive Gene Search:** Search for single genes or perform batch searches for multiple genes simultaneously using standard gene symbols.
-    - **Detailed Gene Information:** View critical details such as official gene names, aliases, chromosomal location, exon counts, and functional summaries.
-    - **Organism-Specific Filtering:** Easily filter results by common model organisms like *Homo sapiens*, *Mus musculus*, *Drosophila melanogaster*, and more.
-    - **Annotation Status Filter:** Narrow down searches to "Fully Annotated" or "Partially Annotated" genes based on the completeness of their NCBI summaries.
-    - **Sequence Data Access:** View GenBank sequence details (ID, length, features) and download gene sequences in FASTA format for further analysis.
-    - **Flexible Data Export:** Download curated annotation data in user-friendly formats (CSV, JSON, TXT) with options to select specific fields for targeted analysis.
-    - **User-Friendly Interface:** Intuitive navigation and clear presentation of complex data, designed for both novice and experienced users in the field of bioinformatics.
-    - **Efficient & Responsive:** Leverages caching and NCBI's Entrez API for up-to-date and relatively fast data retrieval, while respecting API usage guidelines.
-    """) 
-
-    with st.expander("📖 User Manual"):
+    
+    col1, col2 = st.columns([2, 1])
+    with col1:
         st.markdown("""
-        This guide will help you navigate and utilize the features of Annotrax effectively.
-
-        #### Getting Started
-        1.  **NCBI Email**: For NCBI Entrez API use, an email is set by the developer. This ensures compliance with NCBI policies.
-        2.  **Sidebar Options (Left Panel)**:
-            *   **Filter by Annotation Status**: Filter genes based on their annotation status: "All Genes", "Fully Annotated Only", or "Partially Annotated".
-            *   **Select Organism**: Choose the organism of interest from the dropdown list (e.g., Homo sapiens, Mus musculus).
-            *   **Select Search Mode**:
-                *   **Single Gene**: For searching one gene at a time.
-                *   **Multiple Genes (Batch)**: For searching a list of genes.
-
-        #### Single Gene Search (in Home Tab)
-        1.  Select "Single Gene" in the sidebar search mode.
-        2.  Enter the gene name (e.g., TP53, BRCA1) in the search box on the Home tab.
-        3.  Results will display gene details: official name, aliases, function, location, exon count, etc.
-        4.  If multiple gene records match your query (e.g., due to different gene IDs for the same symbol or related genes), they will be displayed in separate sub-tabs for clarity.
-        5.  **View Sequence Data**: For each gene with associated Nucleotide IDs, click the "View Sequence" button. This will fetch and display GenBank details including Accession ID, sequence length, a preview of the sequence (first 1000 bp), and key features like CDS, gene, exon, mRNA.
-        6.  **Download FASTA**: Click the "Download FASTA" button to retrieve the gene sequence in FASTA format for the primary Nucleotide ID linked to the gene.
-        7.  **Download Annotations**:
-            *   If multiple gene results are displayed, you can select which specific genes to include in your annotation download.
-            *   Choose to download "All annotation fields" or select specific fields like "Gene functions," "Exon information," or "Source organism."
-            *   Select your preferred download format: CSV, JSON, or TXT.
-            *   Click the "Download Selected Annotations" button.
-
-        #### Batch Gene Search (in Home Tab)
-        1.  Select "Multiple Genes (Batch)" in the sidebar search mode.
-        2.  In the text area on the Home tab, enter multiple gene names. You can separate them by commas, spaces, or new lines.
-        3.  Click "Search Batch." A progress bar will indicate the search status as Annotrax queries NCBI for each gene.
-        4.  A table summarizing the results for all found genes will be displayed.
-        5.  **Download Batch Annotations**:
-            *   Similar to single gene downloads, choose to download "All fields" or select specific annotation fields.
-            *   Select your desired download format (CSV, JSON, TXT).
-            *   Click the "Download Batch Annotations" button to save the compiled data.
-
-        #### Tips for Effective Use
-        *   Use standard gene symbols (e.g., HUGO nomenclature for human genes) for the most accurate results.
-        *   Be mindful of NCBI API usage limits. The app includes a small delay between requests in batch mode to comply with these limits.
-        *   Data is cached for 1 hour. This means if you search for the same gene in the same organism within an hour, the results will load much faster and reduce calls to the NCBI API.
-        """) 
-
-    st.markdown("<h3 class='about-section-header'>Future Aspects</h3>", unsafe_allow_html=True)
-    st.markdown("""
-    <p>Annotrax is an evolving project. Potential future enhancements include:</p>
-    """, unsafe_allow_html=True)
-    st.markdown("""
-    - **Protein Information:** Integration of protein-specific data from UniProt or NCBI Protein.
-    - **Expanded Organism List:** Option to search for genes in a wider range of organisms.
-    - **Pathway & Interaction Data:** Links to relevant pathway databases (e.g., KEGG, Reactome) or protein-protein interaction networks.
-    - **Advanced Visualization:** Graphical representation of gene structures or annotation distributions.
-    - **User Accounts & Saved Searches:** Functionality for users to save their common searches or preferred settings.
-    - **Direct Variant Information:** Links or integration with variant databases like dbSNP or ClinVar for human genes.
-    """)
-
-    st.markdown("<h3 class='about-section-header'>Acknowledgements</h3>", unsafe_allow_html=True)
-    st.markdown("""
-    <p>This project, Annotrax, stands on the shoulders of giants and is fueled by the spirit of collaborative learning and mentorship. 
-    I extend my deepest gratitude to all who have contributed, directly or indirectly, to its development.</p>
-    
-    <p>A very special and heartfelt acknowledgement goes to 
-    <span class='acknowledgement-highlight'>Dr. Kushagra Kashyap</span>, Professor at DES Pune University. 
-    His invaluable guidance, profound expertise in bioinformatics, and unwavering support were instrumental 
-    throughout the conception and development of this application. Dr. Kashyap's insightful feedback, 
-    encouragement to explore innovative solutions, and dedication to fostering a rich learning environment 
-    have not only shaped Annotrax but have also significantly contributed to my growth as a developer and researcher. 
-    His vision for leveraging computational tools to advance biological research served as a constant source of inspiration. 
-    Thank you, Dr. Kashyap, for your exceptional mentorship. You can connect with him on 
-    <a href="https://www.linkedin.com/in/dr-kushagra-kashyap-b230a3bb?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank">LinkedIn</a>.</p>
-    
-    <p>I am also grateful to:</p>
-    <ul>
-        <li>The creators and maintainers of the <a href="https://www.ncbi.nlm.nih.gov/" target="_blank">National Center for Biotechnology Information (NCBI)</a> and its Entrez API, which provides the foundational data for Annotrax.</li>
-        <li>The developers of <a href="https://biopython.org/" target="_blank">Biopython</a>, for their powerful and versatile bioinformatics library.</li>
-        <li>The <a href="https://streamlit.io/" target="_blank">Streamlit</a> team, for creating an amazing framework that makes building data applications so intuitive.</li>
-        <li>The open-source community, for the countless tools and resources that make projects like this possible.</li>
-    </ul>
-    """, unsafe_allow_html=True)
-
-
-    st.markdown("<h3 class='about-section-header'>Data & Technology</h3>", unsafe_allow_html=True)
-    st.markdown("""
-    <p>
-        Annotrax retrieves all its genomic data in real-time from the National Center for Biotechnology Information (NCBI) 
-        using their Entrez Programming Utilities (E-utilities) API. Key Python libraries enabling this application include 
-        <a href="https://biopython.org/" target="_blank">Biopython</a> for interacting with NCBI and parsing biological data formats, 
-        and <a href="https://pandas.pydata.org/" target="_blank">Pandas</a> for data manipulation and table generation. 
-        The user interface is built with <a href="https://streamlit.io/" target="_blank">Streamlit</a>, 
-        allowing for rapid development of interactive data applications.
-    </p>
-    """, unsafe_allow_html=True)
-
-    st.markdown("<h3 class='about-section-header'>Contact & Support</h3>", unsafe_allow_html=True)
-    st.markdown("""
-    <p>If you have any questions, encounter issues, or have suggestions for improving Annotrax, please feel free to reach out. 
-    Your feedback is valuable!</p>
-    <p><strong>Email:</strong> <a href="mailto:kaletejal05@mail.com">kaletejal05@mail.com</a></p>
-    <p><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/in/tejal-kale-0b2195299?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank">Connect with Tejal Kale on LinkedIn</a></p>
-    <p>We will do our best to respond to your queries as soon as possible.</p>
-    """, unsafe_allow_html=True)
-
-    st.markdown("</div>", unsafe_allow_html=True) 
-
-with tab_dev_desk:
-    st.markdown("<h2 class='sub-header'>Developer's Desk</h2>", unsafe_allow_html=True)
-    st.markdown("<div class='developer-desk-container'>", unsafe_allow_html=True)
-    
-    col_img, col_text = st.columns([1, 2.5]) 
-    
-    with col_img:
-        image_url = "https://media.licdn.com/dms/image/v2/D5603AQFfI1KWVSWl0Q/profile-displayphoto-shrink_400_400/B56ZRRpRfTH0Ag-/0/1736536563970?e=1752105600&v=beta&t=6o_NtvfTuXoxDGHXmXaLYpbi3-blU9E8eHv-OO1gScU"
-        # Using st.markdown for the image to apply custom class and control width
-        st.markdown(
-            f"""
-            <div style="display: flex; justify-content: center;">
-                <img src="{image_url}" alt="Tejal Kale" class="developer-profile-image" style="width: 200px;"> 
-            </div>
-            """, # Removed the caption from here
-            unsafe_allow_html=True
-        )
-
-    with col_text:
-        # Name and Role placed at the top of the text column
-        st.markdown("<h3 class='developer-name-title'>Tejal Kale</h3>", unsafe_allow_html=True)
-        st.markdown("<p class='developer-role'>M.Sc. Bioinformatics Student, DES Pune University</p>", unsafe_allow_html=True)
-        
-        # New introductory paragraph
-        st.markdown("""
-        <div class='developer-intro-text'>
-        As someone who's spent countless hours navigating the complexities of gene annotation, I know firsthand the frustration of juggling multiple tools and databases. 
-        That's why I created Annotrax - a platform born out of my own struggles and passion for bioinformatics. 
-        I wanted to build a tool that would save others the time and effort I've wasted, and instead, empower them to focus on what really matters: discovering new insights and advancing our understanding of the genetic code. 
-        With Annotrax, I've aimed to create a seamless, intuitive experience that brings together the best of gene annotation and analysis in one place. 
-        My hope is that it becomes an indispensable companion for researchers, students, and scientists, helping them unlock the secrets of the genome and drive innovation.
+        <div class='feature-card'>
+            <h4 style='color: #4CAF50!important;'>🌟 Key Features</h4>
+            <ul>
+                <li>Instant gene annotation retrieval</li>
+                <li>Batch processing for multiple genes</li>
+                <li>Multiple download formats (CSV, JSON, FASTA)</li>
+                <li>Comprehensive sequence analysis tools</li>
+                <li>Cross-species compatibility</li>
+            </ul>
         </div>
-        <p class="developer-signature">— Tejal Kale, Developer of Annotrax</p>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div class='feature-card'>
+            <h4 style='color: #4CAF50!important;'>📈 Quick Start</h4>
+            <ol>
+                <li>Select 'Gene Search' tab</li>
+                <li>Enter gene name (e.g., TP53)</li>
+                <li>Select organism</li>
+                <li>Click 'Search' & Explore results!</li>
+            </ol>
+        </div>
         """, unsafe_allow_html=True)
         
+        st.markdown("""
+        <div class='feature-card'>
+            <h4 style='color: #4CAF50!important;'>📊 Database Power</h4>
+            <ul>
+                <li>Access to NCBI Entrez</li>
+                <li>Supports major model organisms</li>
+                <li>Data updated as per NCBI</li>
+                <li>High query success rate</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
+    
     st.markdown("</div>", unsafe_allow_html=True)
 
-# Footer
-st.markdown("---")
-st.markdown("""
-<div class="info-text" style="text-align: center; padding-top: 10px;">
-<small>Annotrax retrieves data from NCBI's Entrez API. Please use responsibly and respect NCBI's usage guidelines. Cache active for 1 hour.</small><br>
-<small>Developed by Tejal Kale.</small>
+# Gene Search Tab
+elif selected_tab == "🔍 Gene Search":
+    st.markdown("<h1 class='main-header'>Gene Annotation Search</h1>", unsafe_allow_html=True)
+    
+    with st.sidebar.expander("🔎 Search Filters", expanded=True):
+        database_option = st.radio(
+            "Annotation Status Filter",
+            ["All", "Fully Annotated Only", "Partially Annotated"],
+            key="db_filter_gene_search"
+        )
+        organism_options = ["Homo sapiens", "Mus musculus", "Drosophila melanogaster", 
+                          "Caenorhabditis elegans", "Saccharomyces cerevisiae", "Danio rerio", "Arabidopsis thaliana"]
+        selected_organism = st.selectbox("Select Organism", organism_options, key="organism_gene_search")
+
+    gene_name_input = st.text_input("🔍 Enter gene name (e.g., INS, BRCA1, TP53):", key="gene_input_main")
+    
+    # Initialize session state for annotations if not present
+    if 'gene_annotations' not in st.session_state:
+        st.session_state.gene_annotations = None
+    if 'current_gene_search_term' not in st.session_state:
+        st.session_state.current_gene_search_term = ""
+    if 'current_organism_search' not in st.session_state:
+        st.session_state.current_organism_search = ""
+
+    if st.button("Search", key="search_button_gene_search", use_container_width=True, type="primary"):
+        if gene_name_input:
+            with st.spinner(f"Searching for '{gene_name_input}' in '{selected_organism}'..."):
+                st.session_state.gene_annotations = fetch_gene_annotation(gene_name_input, selected_organism)
+                st.session_state.current_gene_search_term = gene_name_input
+                st.session_state.current_organism_search = selected_organism
+        else:
+            st.warning("Please enter a gene name to search.")
+            st.session_state.gene_annotations = None # Clear previous results if search is empty
+            
+    if st.session_state.gene_annotations is not None:
+        gene_annotations_to_display = st.session_state.gene_annotations
+        
+        if database_option == "Fully Annotated Only":
+            gene_annotations_to_display = [g for g in gene_annotations_to_display if g["Annotation Status"] == "Complete"]
+        elif database_option == "Partially Annotated":
+            gene_annotations_to_display = [g for g in gene_annotations_to_display if g["Annotation Status"] == "Partial"]
+            
+        if not gene_annotations_to_display:
+            if st.session_state.current_gene_search_term: # Only show warning if a search was made
+                st.warning(f"⚠️ No genes matching '{database_option}' criteria were found for '{st.session_state.current_gene_search_term}' in '{st.session_state.current_organism_search}'.")
+        else:
+            st.success(f"✅ Found {len(gene_annotations_to_display)} result(s) for '{st.session_state.current_gene_search_term}' (Filter: {database_option})")
+            
+            # Determine if tabs are needed
+            if len(gene_annotations_to_display) > 1:
+                tab_titles = [f"{g['Gene Symbol']} ({g['Gene ID']})" for g in gene_annotations_to_display]
+                tabs = st.tabs(tab_titles)
+                
+                for i, tab_content in enumerate(tabs):
+                    with tab_content:
+                        gene_data = gene_annotations_to_display[i]
+                        st.markdown("<div class='result-box'>", unsafe_allow_html=True)
+                        
+                        col1, col2 = st.columns([3, 1])
+                        with col1:
+                            st.markdown(f"### {gene_data['Gene Symbol']} - {gene_data['Official Name']}")
+                            st.markdown(f"**Aliases:** {gene_data['Aliases']}")
+                            st.markdown(f"**Location:** Chromosome {gene_data['Chromosome']}, Position {gene_data['Position']}")
+                            st.markdown(f"**Exons:** {gene_data['Exons']}")
+                            st.markdown(f"**Function:**")
+                            st.markdown(f"{gene_data['Function']}")
+                        
+                        with col2:
+                            st.markdown(f"**Organism:** {gene_data['Source Organism']}")
+                            st.markdown(f"**Gene ID:** {gene_data['Gene ID']}")
+                            st.markdown(f"**Annotation:** {gene_data['Annotation Status']}")
+                            st.markdown(f"**Nucleotide IDs:** {gene_data['Nucleotide IDs']}")
+
+                        st.markdown("---")
+                        
+                        seq_col1, seq_col2, seq_col3 = st.columns([1, 1, 2])
+                        
+                        nuccore_id_to_fetch = gene_data['Nucleotide IDs'].split(", ")[0] if gene_data['Nucleotide IDs'] != "N/A" else None
+
+                        with seq_col1:
+                            if nuccore_id_to_fetch:
+                                if st.button("View Sequence", key=f"view_seq_{gene_data['Gene ID']}", help="Fetch and display GenBank sequence details"):
+                                    with st.spinner("Fetching sequence details..."):
+                                        st.session_state[f"seq_details_{gene_data['Gene ID']}"] = fetch_gene_sequence(nuccore_id_to_fetch)
+                            else:
+                                st.caption("No Nucleotide ID for sequence view.")
+                        
+                        with seq_col2:
+                            if nuccore_id_to_fetch:
+                                if st.button("Download FASTA", key=f"dl_fasta_btn_{gene_data['Gene ID']}", help="Download gene sequence in FASTA format"):
+                                    with st.spinner("Generating FASTA..."):
+                                        st.session_state[f"fasta_data_{gene_data['Gene ID']}"] = fetch_fasta_sequence_data(nuccore_id_to_fetch)
+                            else:
+                                st.caption("No Nucleotide ID for FASTA.")
+
+                        if f"seq_details_{gene_data['Gene ID']}" in st.session_state and st.session_state[f"seq_details_{gene_data['Gene ID']}"]:
+                            seq_data = st.session_state[f"seq_details_{gene_data['Gene ID']}"]
+                            with st.expander("Sequence Details", expanded=False): # Default to collapsed
+                                st.markdown(f"**NCBI ID:** {seq_data['id']}")
+                                st.markdown(f"**Description:** {seq_data['description']}")
+                                st.markdown(f"**Length:** {seq_data['length']} bp")
+                                st.text_area("Sequence Preview (first 1000bp)", 
+                                           value=seq_data['sequence'], 
+                                           height=150, 
+                                           disabled=True,
+                                           key=f"text_seq_preview_{gene_data['Gene ID']}")
+                                if seq_data['features']:
+                                    st.markdown("**Features (first 10):**")
+                                    for feat in seq_data['features']:
+                                        st.caption(f"- **Type:** {feat['type']}, **Location:** {feat['location']}")
+
+
+                        if f"fasta_data_{gene_data['Gene ID']}" in st.session_state and st.session_state[f"fasta_data_{gene_data['Gene ID']}"]:
+                            st.download_button(
+                                label="⬇️ FASTA Ready",
+                                data=st.session_state[f"fasta_data_{gene_data['Gene ID']}"],
+                                file_name=f"{gene_data['Gene Symbol']}_{nuccore_id_to_fetch}.fasta",
+                                mime="text/plain",
+                                key=f"dl_fasta_final_{gene_data['Gene ID']}",
+                                help="Click to download the FASTA file"
+                            )
+                        
+                        with seq_col3:
+                            st.markdown("**Download Annotation Data**")
+                            dl_fields = st.multiselect(
+                                "Select fields for download:",
+                                options=list(gene_data.keys()),
+                                default=["Gene Symbol", "Official Name", "Function", "Chromosome", "Position", "Exons", "Source Organism", "Gene ID"],
+                                key=f"fields_dl_{gene_data['Gene ID']}"
+                            )
+                            dl_format = st.radio("Select download format:", ["CSV", "JSON", "TXT"], 
+                                               horizontal=True, 
+                                               key=f"format_dl_{gene_data['Gene ID']}")
+                            
+                            if st.button("Prepare Download", key=f"prep_dl_{gene_data['Gene ID']}", type="secondary"):
+                                filtered_data_dl = {k: gene_data[k] for k in dl_fields if k in gene_data}
+                                if dl_format == "CSV":
+                                    csv_data = pd.DataFrame([filtered_data_dl]).to_csv(index=False)
+                                    st.session_state[f"dl_data_{gene_data['Gene ID']}"] = csv_data
+                                    st.session_state[f"dl_fname_{gene_data['Gene ID']}"] = f"{gene_data['Gene Symbol']}_annotation.csv"
+                                    st.session_state[f"dl_mime_{gene_data['Gene ID']}"] = "text/csv"
+                                elif dl_format == "JSON":
+                                    json_data_dl = json.dumps(filtered_data_dl, indent=2)
+                                    st.session_state[f"dl_data_{gene_data['Gene ID']}"] = json_data_dl
+                                    st.session_state[f"dl_fname_{gene_data['Gene ID']}"] = f"{gene_data['Gene Symbol']}_annotation.json"
+                                    st.session_state[f"dl_mime_{gene_data['Gene ID']}"] = "application/json"
+                                else: # TXT
+                                    txt_data = "\n".join([f"{k}: {v}" for k, v in filtered_data_dl.items()])
+                                    st.session_state[f"dl_data_{gene_data['Gene ID']}"] = txt_data
+                                    st.session_state[f"dl_fname_{gene_data['Gene ID']}"] = f"{gene_data['Gene Symbol']}_annotation.txt"
+                                    st.session_state[f"dl_mime_{gene_data['Gene ID']}"] = "text/plain"
+                                
+                                st.success(f"{dl_format} file prepared. Click below to download.")
+
+                            if f"dl_data_{gene_data['Gene ID']}" in st.session_state:
+                                st.download_button(
+                                    label=f"⬇️ Download {st.session_state[f'dl_fname_{gene_data['Gene ID']}']}",
+                                    data=st.session_state[f"dl_data_{gene_data['Gene ID']}"],
+                                    file_name=st.session_state[f"dl_fname_{gene_data['Gene ID']}"],
+                                    mime=st.session_state[f"dl_mime_{gene_data['Gene ID']}"],
+                                    key=f"actual_dl_btn_{gene_data['Gene ID']}"
+                                )
+                        st.markdown("</div>", unsafe_allow_html=True)
+            
+            elif len(gene_annotations_to_display) == 1: # Single result, no tabs
+                gene_data = gene_annotations_to_display[0]
+                st.markdown("<div class='result-box'>", unsafe_allow_html=True)
+                
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    st.markdown(f"### {gene_data['Gene Symbol']} - {gene_data['Official Name']}")
+                    st.markdown(f"**Aliases:** {gene_data['Aliases']}")
+                    st.markdown(f"**Location:** Chromosome {gene_data['Chromosome']}, Position {gene_data['Position']}")
+                    st.markdown(f"**Exons:** {gene_data['Exons']}")
+                    st.markdown(f"**Function:**")
+                    st.markdown(f"{gene_data['Function']}")
+                
+                with col2:
+                    st.markdown(f"**Organism:** {gene_data['Source Organism']}")
+                    st.markdown(f"**Gene ID:** {gene_data['Gene ID']}")
+                    st.markdown(f"**Annotation:** {gene_data['Annotation Status']}")
+                    st.markdown(f"**Nucleotide IDs:** {gene_data['Nucleotide IDs']}")
+
+                st.markdown("---")
+                seq_col1, seq_col2, seq_col3 = st.columns([1, 1, 2])
+                
+                nuccore_id_to_fetch = gene_data['Nucleotide IDs'].split(", ")[0] if gene_data['Nucleotide IDs'] != "N/A" else None
+
+                with seq_col1:
+                    if nuccore_id_to_fetch:
+                        if st.button("View Sequence", key=f"view_seq_single_{gene_data['Gene ID']}", help="Fetch and display GenBank sequence details"):
+                            with st.spinner("Fetching sequence details..."):
+                                st.session_state[f"seq_details_single_{gene_data['Gene ID']}"] = fetch_gene_sequence(nuccore_id_to_fetch)
+                    else:
+                        st.caption("No Nucleotide ID for sequence view.")
+                
+                with seq_col2:
+                    if nuccore_id_to_fetch:
+                        if st.button("Download FASTA", key=f"dl_fasta_btn_single_{gene_data['Gene ID']}", help="Download gene sequence in FASTA format"):
+                            with st.spinner("Generating FASTA..."):
+                                st.session_state[f"fasta_data_single_{gene_data['Gene ID']}"] = fetch_fasta_sequence_data(nuccore_id_to_fetch)
+                    else:
+                        st.caption("No Nucleotide ID for FASTA.")
+
+                if f"seq_details_single_{gene_data['Gene ID']}" in st.session_state and st.session_state[f"seq_details_single_{gene_data['Gene ID']}"]:
+                    seq_data = st.session_state[f"seq_details_single_{gene_data['Gene ID']}"]
+                    with st.expander("Sequence Details", expanded=False):
+                        st.markdown(f"**NCBI ID:** {seq_data['id']}")
+                        st.markdown(f"**Description:** {seq_data['description']}")
+                        st.markdown(f"**Length:** {seq_data['length']} bp")
+                        st.text_area("Sequence Preview (first 1000bp)", 
+                                   value=seq_data['sequence'], 
+                                   height=150, 
+                                   disabled=True,
+                                   key=f"text_seq_preview_single_{gene_data['Gene ID']}")
+                        if seq_data['features']:
+                            st.markdown("**Features (first 10):**")
+                            for feat in seq_data['features']:
+                                 st.caption(f"- **Type:** {feat['type']}, **Location:** {feat['location']}")
+
+                if f"fasta_data_single_{gene_data['Gene ID']}" in st.session_state and st.session_state[f"fasta_data_single_{gene_data['Gene ID']}"]:
+                    st.download_button(
+                        label="⬇️ FASTA Ready",
+                        data=st.session_state[f"fasta_data_single_{gene_data['Gene ID']}"],
+                        file_name=f"{gene_data['Gene Symbol']}_{nuccore_id_to_fetch}.fasta",
+                        mime="text/plain",
+                        key=f"dl_fasta_final_single_{gene_data['Gene ID']}",
+                        help="Click to download the FASTA file"
+                    )
+                
+                with seq_col3:
+                    st.markdown("**Download Annotation Data**")
+                    dl_fields_single = st.multiselect(
+                        "Select fields for download:",
+                        options=list(gene_data.keys()),
+                        default=["Gene Symbol", "Official Name", "Function", "Chromosome", "Position", "Exons", "Source Organism", "Gene ID"],
+                        key=f"fields_dl_single_{gene_data['Gene ID']}"
+                    )
+                    dl_format_single = st.radio("Select download format:", ["CSV", "JSON", "TXT"], 
+                                       horizontal=True, 
+                                       key=f"format_dl_single_{gene_data['Gene ID']}")
+                    
+                    if st.button("Prepare Download", key=f"prep_dl_single_{gene_data['Gene ID']}", type="secondary"):
+                        filtered_data_dl_single = {k: gene_data[k] for k in dl_fields_single if k in gene_data}
+                        if dl_format_single == "CSV":
+                            csv_data_s = pd.DataFrame([filtered_data_dl_single]).to_csv(index=False)
+                            st.session_state[f"dl_data_single_{gene_data['Gene ID']}"] = csv_data_s
+                            st.session_state[f"dl_fname_single_{gene_data['Gene ID']}"] = f"{gene_data['Gene Symbol']}_annotation.csv"
+                            st.session_state[f"dl_mime_single_{gene_data['Gene ID']}"] = "text/csv"
+                        elif dl_format_single == "JSON":
+                            json_data_dl_s = json.dumps(filtered_data_dl_single, indent=2)
+                            st.session_state[f"dl_data_single_{gene_data['Gene ID']}"] = json_data_dl_s
+                            st.session_state[f"dl_fname_single_{gene_data['Gene ID']}"] = f"{gene_data['Gene Symbol']}_annotation.json"
+                            st.session_state[f"dl_mime_single_{gene_data['Gene ID']}"] = "application/json"
+                        else: # TXT
+                            txt_data_s = "\n".join([f"{k}: {v}" for k, v in filtered_data_dl_single.items()])
+                            st.session_state[f"dl_data_single_{gene_data['Gene ID']}"] = txt_data_s
+                            st.session_state[f"dl_fname_single_{gene_data['Gene ID']}"] = f"{gene_data['Gene Symbol']}_annotation.txt"
+                            st.session_state[f"dl_mime_single_{gene_data['Gene ID']}"] = "text/plain"
+                        
+                        st.success(f"{dl_format_single} file prepared. Click below to download.")
+
+                    if f"dl_data_single_{gene_data['Gene ID']}" in st.session_state:
+                        st.download_button(
+                            label=f"⬇️ Download {st.session_state[f'dl_fname_single_{gene_data['Gene ID']}']}",
+                            data=st.session_state[f"dl_data_single_{gene_data['Gene ID']}"],
+                            file_name=st.session_state[f"dl_fname_single_{gene_data['Gene ID']}"],
+                            mime=st.session_state[f"dl_mime_single_{gene_data['Gene ID']}"],
+                            key=f"actual_dl_btn_single_{gene_data['Gene ID']}"
+                        )
+                st.markdown("</div>", unsafe_allow_html=True)
+
+    elif st.session_state.current_gene_search_term: # No results found and a search term exists
+        st.info(f"No results found for '{st.session_state.current_gene_search_term}' in '{st.session_state.current_organism_search}'. Please check the gene name and organism or try a different query.")
+
+
+# Batch Search Tab
+elif selected_tab == "📚 Batch Search":
+    st.markdown("<h1 class='main-header'>Batch Gene Analysis</h1>", unsafe_allow_html=True)
+    
+    st.markdown("### Upload gene list (TXT) or enter manually:")
+    
+    # File uploader
+    uploaded_file = st.file_uploader("Upload a .txt file with one gene name per line", type="txt", key="batch_file_uploader")
+    
+    # Text area for manual input
+    batch_input_area = st.text_area("Enter gene names (separated by commas or new lines):", height=150, key="batch_text_area")
+    
+    # Organism selection for batch search
+    organism_options_batch = ["Homo sapiens", "Mus musculus", "Drosophila melanogaster", 
+                              "Caenorhabditis elegans", "Saccharomyces cerevisiae", "Danio rerio", "Arabidopsis thaliana"]
+    selected_organism_batch = st.selectbox("Select Organism for Batch Search", organism_options_batch, key="organism_batch_search")
+
+    if st.button("Process Batch", key="process_batch_button", use_container_width=True, type="primary"):
+        gene_list = []
+        if uploaded_file is not None:
+            # To read file as string:
+            stringio = io.StringIO(uploaded_file.getvalue().decode("utf-8"))
+            # Process lines from file
+            gene_list.extend([line.strip() for line in stringio.readlines() if line.strip()])
+        
+        if batch_input_area:
+            # Process lines from text area
+            gene_list.extend([g.strip() for g in batch_input_area.replace("\n", ",").split(",") if g.strip()])
+        
+        if not gene_list:
+            st.warning("Please provide gene names either by uploading a file or entering them manually.")
+        else:
+            # Remove duplicates and empty strings
+            gene_list = sorted(list(set(filter(None, gene_list)))) 
+            
+            if not gene_list: # Check again after filtering
+                st.warning("No valid gene names found after processing input.")
+            else:
+                st.info(f"Processing {len(gene_list)} unique gene(s) for organism: {selected_organism_batch}")
+                results = []
+                progress_bar = st.progress(0)
+                status_text = st.empty()
+                
+                for idx, gene in enumerate(gene_list):
+                    status_text.text(f"Processing {gene} ({idx+1}/{len(gene_list)})...")
+                    annotations = fetch_gene_annotation(gene, selected_organism_batch)
+                    if annotations: # fetch_gene_annotation returns a list of results
+                        results.extend(annotations) # Use extend for list of dicts
+                    else:
+                        # Add a placeholder if no annotation found for a specific gene, to keep track
+                        results.append({
+                            "Gene ID": "N/A", "Gene Symbol": gene, "Official Name": "Not Found", 
+                            "Aliases": "N/A", "Function": "N/A", "Chromosome": "N/A", 
+                            "Position": "N/A", "Exons": "N/A", "Source Organism": selected_organism_batch,
+                            "Annotation Status": "Not Found", "Nucleotide IDs": "N/A"
+                        })
+                    progress_bar.progress((idx+1)/len(gene_list))
+                    time.sleep(0.33) # Respect NCBI API rate limits (3 requests per second without API key)
+                
+                status_text.success("Batch processing complete!")
+                
+                if results:
+                    df = pd.DataFrame(results)
+                    st.success(f"Processed {len(gene_list)} gene(s). Found annotations for {len(df[df['Gene ID'] != 'N/A'])} of them.")
+                    st.dataframe(df)
+                    
+                    csv = df.to_csv(index=False).encode('utf-8')
+                    st.download_button(
+                        label="Download Batch Results as CSV",
+                        data=csv,
+                        file_name=f"batch_gene_annotations_{selected_organism_batch.replace(' ', '_')}.csv",
+                        mime="text/csv",
+                        key="download_batch_csv"
+                    )
+                else: # Should not happen if placeholders are added
+                    st.warning("No results found or an error occurred during batch search.")
+
+# About Tab
+elif selected_tab == "📖 About":
+    st.markdown("<h1 class='main-header'>About Annotrax</h1>", unsafe_allow_html=True)
+    
+   # Developer's Desk Section
+    with st.container():
+        st.markdown("""
+        <div class='main-container'>
+            <h2 style='color: #4CAF50!important; border-bottom: 2px solid #4CAF50; padding-bottom: 0.5rem;'>Developer's Desk</h2>
+            <div style='display: flex; flex-direction: column; align-items: center; margin: 2rem 0;'>
+                <img src='https://media.licdn.com/dms/image/v2/D5603AQFfI1KWVSWl0Q/profile-displayphoto-shrink_400_400/B56ZRRpRfTH0Ag-/0/1736536563970?e=1752710400&v=beta&t=4UtS-OUEjdd0dV7BMRQFA2CxjhOd-tgFPmYbeNAzqB4' 
+                     style='width: 180px; height: 180px; object-fit: cover; border-radius: 50%; border: 3px solid #4CAF50; margin-bottom: 1rem;'>
+                <h3>Tejal Kale</h3>
+                <p style='color: #4CAF50!important; margin-bottom: 0.5rem;'>Developer of Annotrax</p>
+                <div class='feature-card' style='max-width: 800px;'>
+                    <p style='text-align: justify; line-height: 1.6;'>
+                    Hello Bioinformaticians! I am Tejal Kale, a Master's student in Bioinformatics at Deccan Education Society's Pune University. 
+                    As someone who's spent countless hours navigating the complexities of gene annotation, I know firsthand the frustration 
+                    of juggling multiple tools and databases. That's why I created Annotrax - a platform born out of my own struggles 
+                    and passion for bioinformatics.<br><br>
+                    I wanted to build a tool that would save others the time and effort I've wasted, and instead empower them to focus 
+                    on what really matters: discovering new insights and advancing our understanding of the genetic code. With Annotrax, 
+                    I've aimed to create a seamless, intuitive experience that brings together the best of gene annotation and analysis 
+                    in one place. My hope is that it becomes an indispensable companion for researchers, students, and scientists, 
+                    helping them unlock the secrets of the genome and drive innovation.
+                    </p>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Mentor Section
+    with st.container():
+        st.markdown("""
+        <div class='main-container' style='margin-top: 2rem;'>
+            <h2 style='color: #4CAF50!important; border-bottom: 2px solid #4CAF50; padding-bottom: 0.5rem;'>Meet My Mentor</h2>
+            <div style='display: flex; flex-direction: column; align-items: center; margin: 2rem 0;'>
+                <img src='https://despu.edu.in/assets/admin/img/faculty_images/1738156003_375696d99642e3a89742.jpg' 
+                     style='width: 180px; height: 180px; object-fit: cover; border-radius: 50%; border: 3px solid #4CAF50; margin-bottom: 1rem;'>
+                <h3>Dr. Kushagra Kashyap</h3>
+                <p style='color: #4CAF50!important; margin-bottom: 0.5rem;'>Assistant Professor - DES Pune University</p>
+                <div class='feature-card' style='max-width: 800px;'>
+                    <p style='text-align: justify; line-height: 1.6;'>
+                    Meet Dr. Kushagra Kashyap, a passionate and enthusiastic educator with a PhD from CSIR-CDRI Lucknow. 
+                    As an Assistant Professor at Deccan Education Society's Pune University, Dr. Kashyap brings his expertise 
+                    in Structural Bioinformatics and Cheminformatics to the classroom, inspiring students to explore the 
+                    fascinating world of computational biology and drug discovery. With a strong commitment to academic excellence, 
+                    Dr. Kashyap's teaching style is characterized by clarity, enthusiasm, and a genuine passion for mentoring 
+                    the next generation of scientists.
+                    </p>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+  # Acknowledgements Section
+    # Acknowledgements Section
+    with st.container():
+        st.markdown("""
+        <div class='main-container' style='margin-top: 2rem;'>
+            <h2 style='color: #4CAF50!important; border-bottom: 2px solid #4CAF50; padding-bottom: 0.5rem;'>Acknowledgements</h2>
+            <div class='feature-card' style='margin: 2rem 0; padding: 1.5rem;'>
+                <p style='color: #e0e0e0; line-height: 1.6; font-size: 16px;'>
+                I would like to extend my heartfelt gratitude to:<br><br>
+                1. Dr. Kushagra Kashyap, for his invaluable guidance and support throughout this project. His expertise and enthusiasm were instrumental in shaping my work.<br><br>
+                2. Dr. Poonam Deshpande, for her exceptional guidance, mentorship, and unwavering support. Her insights and feedback were crucial to the project's success.<br><br>
+                3. DES Pune University, for providing me with the necessary resources, infrastructure, and opportunities to complete this project.
+                </p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+ # Purpose Section
+    with st.container():
+        st.markdown("""
+        <div class='main-container' style='margin-top: 2rem;'>
+            <h2 style='color: #4CAF50!important; border-bottom: 2px solid #4CAF50; padding-bottom: 0.5rem;'>Purpose</h2>
+            <div class='feature-card' style='margin: 2rem 0; padding: 1.5rem;'>
+                <p style='color: #e0e0e0; line-height: 1.6; font-size: 16px;'>
+                Annotrax was developed to streamline gene annotation workflows, providing researchers with:
+                <ul style='color: #e0e0e0; padding-left: 20px;'>
+                    <li>Quick access to comprehensive gene information</li>
+                    <li>Batch processing capabilities</li>
+                    <li>User-friendly interface for both experts and students</li>
+                    <li>Centralized biological data from trusted sources</li>
+                </ul>
+                The tool aims to reduce time spent on data gathering and increase focus on analysis and discovery.
+                </p>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+##Contact Section
+    with st.container():
+        st.markdown("""
+        <div class='main-container' style='margin-top: 2rem;'>
+            <h2 style='color: #4CAF50!important; border-bottom: 2px solid #4CAF50; padding-bottom: 0.5rem;'>Contact & Feedback</h2>
+<div class='feature-card' style='margin: 2rem 0; padding: 1.5rem;'>
+    <h3 style='color: #4CAF50!important;'>Tejal Kale</h3>
+    <p style='color: #e0e0e0 ; line-height: 1.6; font-size: 16px;'>
+        Master's Student in Bioinformatics<br>
+        DES Pune University<br>
+        <span style='color: #4CAF50;'>📧 </span><a href="mailto:kaletejal05@mail.com" style='color: #4CAF50;'>kaletejal05@mail.com</a>
+    </p>
+    <div style='margin-top: 1rem;'>
+        <a href='https://www.linkedin.com/in/tejal-kale-0b2195299?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app' target='_blank' style='text-decoration: none; margin-right: 1rem;'>
+            <button style='background-color: #e0e0e0; color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer;'>
+                Connect on LinkedIn
+            </button>
+        </a>
+        <a href='https://github.com/tejal-kale' target='_blank' style='text-decoration: none;'>
+            <button style='background-color: #e0e0e0; color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer;'>
+                View GitHub Profile
+            </button>
+        </a>
+    </div>
+</div>
+
+<!-- Dr. Kushagra Kashyap Contact -->
+<div class='feature-card' style='margin: 2rem 0; padding: 1.5rem;'>
+    <h3 style='color: #4CAF50!important;'>Dr. Kushagra Kashyap</h3>
+    <p style='color: #e0e0e0; line-height: 1.6; font-size: 16px;'>
+        Assistant Professor<br>
+        DES Pune University
+    </p>
+    <div style='margin-top: 1rem;'>
+        <a href='https://www.linkedin.com/in/dr-kushagra-kashyap-b230a3bb' target='_blank' style='text-decoration: none;'>
+            <button style='background-color: #e0e0e0; color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer;'>
+                Connect on LinkedIn
+            </button>
+        </a>
+    </div>
 </div>
 """, unsafe_allow_html=True)
+# Sidebar footer
+st.sidebar.markdown("---")
+with st.sidebar.expander("ℹ️ App Information"):
+    st.markdown(""" 
+    **Last Updated: May 2025** 
+
+    **Developed with ❤ by Tejal Kale for all the Bioinformatics Enthusiasts** 
+    
+    This tool uses the NCBI Entrez API for fetching gene and sequence data. 
+    Please be mindful of API usage limits.
+    """)
